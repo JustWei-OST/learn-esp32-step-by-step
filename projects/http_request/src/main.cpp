@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+String httpGetRequest(const char *url);
 
 // const char *ssid = "Just_Wei";
 // const char *password = "JustWei512";
@@ -8,7 +11,7 @@
 const char *ssid = "Wokwi-GUEST"; // 您的WiFi网络名称
 const char *password = "";        // 您的WiFi网络密码
 
-String url="https://www.bt.cn/Api/getIpAddress";
+String url = "http://ua.mojinyun.com/home/ip";
 
 void setup()
 {
@@ -36,18 +39,44 @@ void loop()
   //如果wifi连接成功,则每秒请求一次url,并在串口中打印返回的内容
   if (WiFi.status() == WL_CONNECTED)
   {
-    HTTPClient http;
-    http.begin(url);
-    int httpCode = http.GET();
-    if (httpCode > 0)
-    {
-      String payload = http.getString();
-      Serial.println(payload);
-    }
-    else
-    {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
-    http.end();
+    String res = httpGetRequest(url.c_str());
+    Serial.println(res);
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, res);
+
+    String ip = doc["Data"]["ip"];
+    String country = doc["Data"]["country"];
+    String province = doc["Data"]["province"];
+    String city = doc["Data"]["city"];
+
+    Serial.println("您的ip是:" + ip + "  来自:" + country + " " + province + " " + city);
   }
+}
+
+String httpGetRequest(const char *url)
+{
+  WiFiClient client;
+  HTTPClient http;
+
+  http.begin(client, url);
+
+  // Send HTTP GET request
+  int httpResponseCode = http.GET();
+
+  String payload = "";
+
+  if (httpResponseCode > 0)
+  {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+    payload = http.getString();
+  }
+  else
+  {
+    Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpResponseCode).c_str());
+  }
+  // Free resources
+  http.end();
+
+  return payload;
 }
