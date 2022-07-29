@@ -8,12 +8,10 @@ const char *password = "your_password";
 
 const char *testTopic = "hello/world";
 
-WiFiClient net;
-
 EspMQTTClient client(
     ssid,
     password,
-    "mqtt.justwei.com", // MQTT服务器的ip或域名,请确保在esp32连接的wifi网络中能够访问到该服务器
+    "192.168.0.8", // MQTT服务器的ip或域名,请确保在esp32连接的wifi网络中能够访问到该服务器
     "MQTTUsername",     // 如果不需要,可以省略
     "MQTTPassword",     // Can be omitted if not needed
     "TestClient"        // Client name that uniquely identify your device
